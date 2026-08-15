@@ -1,0 +1,63 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 24.06.2026 22:05:59
+// Design Name: 
+// Module Name: top
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+module top (
+    input  clk_p,
+    input  clk_n,
+
+    input  PL_USER_PB0,      // Reset
+    input  PL_USER_SW0,      // Enable
+
+    output [3:0] PL_USER_LED
+);
+
+wire clk;
+wire slow_clk;
+
+reg [26:0] div_cnt;
+
+// Differential Clock Buffer
+IBUFDS clk_buf (
+    .I (clk_p),
+    .IB(clk_n),
+    .O (clk)
+);
+
+// Clock Divider
+always @(posedge clk or posedge PL_USER_PB0)
+begin
+    if (PL_USER_PB0)
+        div_cnt <= 27'd0;
+    else
+        div_cnt <= div_cnt + 1'b1;
+end
+
+assign slow_clk = div_cnt[26];
+
+// 4-bit Counter
+counter uut (
+    .clk   (slow_clk),
+    .rst   (PL_USER_PB0),
+    .en    (PL_USER_SW0),
+    .count (PL_USER_LED)
+);
+
+endmodule
